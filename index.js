@@ -226,7 +226,7 @@ function myNew(fn, ...args) {
 {
   function Cat2(name) {
     this.name = name;
-    return [];
+    // return [];
   }
   const c = myNew(Cat, 'j');
   console.log(c);
@@ -239,10 +239,10 @@ Function.prototype.mybind = function (thisArg, ...args) {
   function bindFn(...rest) {
     if (this instanceof bindFn) {
       const ctx = Object.create(fn.prototype);
-      fn.mycall(ctx, ...args, ...rest);
+      fn.call(ctx, ...args, ...rest);
       return ctx;
     } else {
-      return fn.mycall(thisArg, ...args, ...rest);
+      return fn.call(thisArg, ...args, ...rest);
     }
   }
   return bindFn;
@@ -401,52 +401,50 @@ Eat supper
 以此类推。 */
 
 function LazyMan(name) {
-  function LazyMan(name) {
-    let queue = [];
-    let next = () => {
-      const first = queue.shift();
-      first?.();
-    };
-    const task = () => {
-      console.log(`Hello I am ${name}`);
-      next();
-    };
-    queue.push(task);
-    let api = {
-      eat(type) {
-        const task = () => {
-          console.log(
-            `I am eating,it's ${type === 'lunch' ? 'lunch' : 'dinner'}`
-          );
+  let queue = [];
+  let next = () => {
+    const first = queue.shift();
+    first?.();
+  };
+  const task = () => {
+    console.log(`Hello I am ${name}`);
+    next();
+  };
+  queue.push(task);
+  let api = {
+    eat(type) {
+      const task = () => {
+        console.log(
+          `I am eating,it's ${type === 'lunch' ? 'lunch' : 'dinner'}`
+        );
+        next();
+      };
+      queue.push(task);
+      return api;
+    },
+    sleep(time) {
+      const task = () => {
+        setTimeout(() => {
+          console.log(`I wake up, I sleep ${time}s`);
           next();
-        };
-        queue.push(task);
-        return api;
-      },
-      sleep(time) {
-        const task = () => {
-          setTimeout(() => {
-            console.log(`I wake up, I sleep ${time}s`);
-            next();
-          }, time * 1000);
-        };
-        queue.push(task);
-        return api;
-      },
-      sleepFirst(time) {
-        const task = () => {
-          setTimeout(() => {
-            console.log(`I wake up, I sleep ${time} s`);
-            next();
-          }, time * 1000);
-        };
-        queue.unshift(task);
-        return api;
-      },
-    };
-    setTimeout(next);
-    return api;
-  }
-
-  LazyMan('jack').sleepFirst(5).eat('lunch').sleep(3).eat('dinner');
+        }, time * 1000);
+      };
+      queue.push(task);
+      return api;
+    },
+    sleepFirst(time) {
+      const task = () => {
+        setTimeout(() => {
+          console.log(`I wake up, I sleep ${time} s`);
+          next();
+        }, time * 1000);
+      };
+      queue.unshift(task);
+      return api;
+    },
+  };
+  setTimeout(next);
+  return api;
 }
+
+LazyMan('jack').sleepFirst(5).eat('lunch').sleep(3).eat('dinner');
